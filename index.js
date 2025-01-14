@@ -11,12 +11,39 @@ App.use(bodyParser.json());
 App.use(bodyParser.urlencoded({ extended: true }));
 App.use(cors());
 
-//rota principal da aplicação
-App.get('/', (req, resp) => {
+//Realiza no DB o cadastro das informações em Register
+
+App.post('/cadastro', (req, res) => {
+  const sql = 'INSERT INTO login (`name`, `email`, `password`) VALUES (?)';
+  const values = [req.body.name, req.body.email, req.body.password];
+
+  DB.query(sql, [values], (err, data) => {
+    if (err) return res.json('Error');
+    return res.json(data);
+  });
+});
+
+// Puxa os dados no BD para validação de login
+App.post('/login', (req, res) => {
+  const sql = 'SELECT * FROM login WHERE `email` =? `password` =?';
+
+  DB.query(sql, [req.body.email, req.body.password], (err, data) => {
+    if (err) {
+      return res.json('Error');
+    }
+    if (data.length > 0) {
+      return res.json('Login efetuado com sucesso');
+    } else {
+      return res.json('Falha ao logar');
+    }
+  });
+});
+
+//rota principal da aplicação para os produtos.
+App.get('/home', (req, resp) => {
   const query = 'SELECT COUNT(*) as total FROM produtos';
   connection.query(query, (err, data) => {
     if (err) return resp.status(404).json(error);
-
     return resp.status(200).json(data);
   });
 });
@@ -27,7 +54,6 @@ App.get('/produtos', (req, resp) => {
 
   connection.query(query, (err, data) => {
     if (err) return resp.status(404).json(error);
-
     return resp.status(200).json(data);
   });
 });
