@@ -2,6 +2,8 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { connection } from './database/database.js';
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 const App = express();
 const PORT = 3000;
 
@@ -16,10 +18,11 @@ App.use(cors());
 App.post('/cadastro', (req, res) => {
   const sql = 'INSERT INTO login (`name`, `email`, `password`) VALUES (?)';
   const values = [req.body.name, req.body.email, req.body.password];
-
-  DB.query(sql, [values], (err, data) => {
-    if (err) return res.json('Error');
-    return res.json(data);
+  bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
+    DB.query(sql, [values], (err, data) => {
+      if (err) return res.json('Error');
+      return res.json(data);
+    });
   });
 });
 
@@ -32,13 +35,18 @@ App.post('/login', (req, res) => {
       return res.json('Error');
     }
     if (data.length > 0) {
-      return res.json('Login efetuado com sucesso');
+      bcrypt.compare(req.body.password, data[0].password, (err, data) => {
+        if (data) {
+          return res.json('Login efetuado com sucesso');
+        } else {
+          res.json('Senha incorreta');
+        }
+      });
     } else {
-      return res.json('Falha ao logar');
+      return res.json('Conta não encontrada');
     }
   });
 });
-
 //rota principal da aplicação para os produtos.
 App.get('/home', (req, resp) => {
   const query = 'SELECT COUNT(*) as total FROM produtos';
@@ -72,7 +80,7 @@ App.get('/produtos/:id', (req, resp) => {
 App.post('/produtos', (req, resp) => {
   const data = req.body;
   const query =
-    'INSERT INTO produtos (codigoProduto,nome,descrisao,preco) values (?)';
+    'INSERT INTO produtos (codigoProduto, nome, descriçao, preco) values (?)';
   const values = [data.codigoProduto, data.nome, data.descrisao, data.preco];
 
   connection.query(query, [values], (err, data) => {
@@ -88,7 +96,7 @@ App.put('/produtos/:id', (req, resp) => {
   const data = req.body;
 
   const query =
-    'UPDATE produtos SET `codigoProduto` = ?,`nome` = ?,`descrisao` = ?,`preco` = ? WHERE codigoProduto =  ? ';
+    'UPDATE produtos SET `codigoProduto` = ?,`nome` = ?,`descriçao` = ?,`preco` = ? WHERE codigoProduto =  ? ';
   const values = [data.codigoProduto, data.nome, data.descrisao, data.preco];
   connection.query(query, [...values, codigoProduto], (err, data) => {
     if (err) return resp.status(404).json(err);
