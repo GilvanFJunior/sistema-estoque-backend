@@ -1,4 +1,3 @@
-# 
 Sistema de gerenciamento de estoque de produtos, utilizando ReactJS, ViteJs e Node (Express). </br>
 
 <pre><code>Produto:{ 
