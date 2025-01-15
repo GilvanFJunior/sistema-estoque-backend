@@ -1,4 +1,6 @@
-Sistema de gerenciamento de estoque de produtos, utilizando ReactJS, ViteJs e Node (Express). </br>
+# Sistema de gerenciamento de estoque de produtos
+
+Tecnologias: ReactJS, ViteJs, MySQL e Node (Express). </br>
 
 <pre><code>Produto:{ 
             item: descrição do produto, 
